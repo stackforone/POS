@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการสินค้า</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* Reset และ Global Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Prompt', sans-serif;
+    }
+
+    /* ทำให้ body ไม่มีการเลื่อนในแนวนอน */
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* ปิดการเลื่อนแนวนอน */
+}
+
+/* สำหรับ .main-content */
+.main-content {
+  margin-left: 280px;
+  padding: 20px;
+  max-width: 100%; /* จำกัดความกว้าง */
+  box-sizing: border-box; /* รวม padding ไว้ใน width */
+}
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: white;
+      padding: 20px;
+      height: 100vh;
+      position: fixed;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      margin: 5px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #666;
+      transition: all 0.3s;
+    }
+
+    .menu-item i {
+      margin-right: 10px;
+      font-size: 18px;
+    }
+
+    .menu-item.active {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+
+    .menu-item:hover {
+      background: #f5f5f5;
+    }
+
+    
+
+    h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .actions input[type="text"] {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      width: 300px;
+    }
+
+    .actions select {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+
+    .actions .add-btn {
+      padding: 10px 20px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .actions .add-btn:hover {
+      background: #000;
+    }
+
+    /* Product Grid */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .product-card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s;
+    }
+
+    .product-card:hover {
+      transform: scale(1.05);
+    }
+
+    .product-image {
+      height: 150px;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .product-image img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .product-details {
+      padding: 15px;
+    }
+
+    .product-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .product-category {
+      font-size: 14px;
+      color: #777;
+      margin-bottom: 10px;
+    }
+
+    .product-price {
+      font-size: 16px;
+      color: #e74c3c;
+      margin-bottom: 15px;
+    }
+
+    .product-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .product-actions button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+      color: white;
+      transition: background 0.2s;
+    }
+
+    .edit-btn {
+      background: #3498db;
+    }
+
+    .delete-btn {
+      background: #e74c3c;
+    }
+
+    .edit-btn i,
+    .delete-btn i {
+      margin-right: 5px;
+    }
+
+    .edit-btn:hover {
+      background: #2980b9;
+    }
+
+    .delete-btn:hover {
+      background: #c0392b;
+    }
+
+    /* Popup Overlay */
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.hidden {
+  display: none;
+}
+
+.popup-content {
+  background: white;
+  border-radius: 10px;
+  width: 400px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.popup-content h2 {
+  margin-bottom: 20px;
+  font-size: 20px;
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #555;
+}
+
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.popup-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.add-btn {
+  background: #28a745;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background: #e74c3c;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.add-btn:hover {
+  background: #218838;
+}
+
+.cancel-btn:hover {
+  background: #c0392b;
+}
+.hamburger-menu {
+    display: none;
+}
+  
+  </style>
+
+<style>
+  @media (max-width: 768px) {
+  /* กำหนดขนาดการ์ดสินค้า */
+    
+    * {
+  -webkit-tap-highlight-color: transparent; /* ปิดสี highlight */
+  touch-action: manipulation; /* ปรับปรุงการตอบสนองของ touch */
+}
+    * {
+  -webkit-tap-highlight-color: transparent; /* ปิดเอฟเฟกต์ highlight */
+}
+    
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr); /* แสดง 2 คอลัมน์ */
+    gap: 13px; /* ระยะห่างระหว่างการ์ด */
+  }
+
+  .product-card {
+    font-size: 14px; /* ลดขนาดตัวอักษร */
+    padding: 10px; /* ลด Padding เพื่อความกระชับ */
+    border-radius: 8px; /* เพิ่มมุมโค้งเล็กน้อย */
+    margin-top: -10px;
+  }
+
+  .product-image {
+    height: 70px; /* ลดขนาดภาพ */
+  }
+
+  .product-details {
+    padding: 5px; /* ลด Padding ภายใน */
+    text-align: center; /* จัดข้อความให้อยู่ตรงกลาง */
+  }
+
+  .product-name {
+    font-size: 16px; /* ขนาดตัวอักษรเล็กลง */
+    font-weight: 600;
+    color: #333;
+  }
+
+  .product-category {
+    font-size: 12px; /* ขนาดตัวอักษรเล็กลง */
+    color: #555;
+  }
+
+  .product-price {
+    font-size: 14px;
+    color: #e74c3c;
+    font-weight: bold;
+  }
+
+  .product-actions button {
+    padding: 3px 10px; /* ลดขนาดปุ่ม */
+    font-size: 12px; /* ลดขนาดข้อความในปุ่ม */
+    border-radius: 5px;
+
+  }
+
+  .edit-btn {
+    background: #3498db;
+  }
+
+  .delete-btn {
+    background: #e74c3c;
+  }
+
+  .edit-btn:hover {
+    background: #2980b9;
+  }
+
+  .delete-btn:hover {
+    background: #c0392b;
+  }
+
+  /* ปรับ Sidebar สำหรับมือถือ */
+  .sidebar {
+  position: fixed;
+  top: 0;
+  left: -250px; /* ซ่อน Sidebar ด้านซ้าย */
+  width: 220px;
+  height: 100%;
+  background: white;
+  transition: left 0.3s ease; /* เพิ่มการเลื่อนแบบนุ่มนวล */
+  z-index: 2000;
+  font-size: 14px;
+}
+
+.sidebar.open {
+  left: 0; /* แสดง Sidebar */
+}
+    
+  .sidebar i {
+    font-size: 14px;
+  }
+    
+    .sidebar .logo{
+      margin-left: 50px;
+    }
+
+
+  /* ปุ่ม Hamburger Menu */
+  .hamburger-menu {
+    display: block;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: #fff;
+    color: #000;
+    border: none;
+    border-radius: 5px;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    z-index: 3000;
+    -webkit-tap-highlight-color: transparent; /* ปิด Highlight บนมือถือ */
+  }
+
+  .hamburger-menu i {
+    font-size: 20px;
+  }
+    
+    .hamburger-menu {
+        display: block; /* แสดงปุ่ม Hamburger บนมือถือ */
+    }
+    
+    
+
+
+
+  /* ปรับ .main-content ให้ชิดขอบ */
+  .main-content {
+    margin-left: 0;
+    padding-top: 60px; /* เผื่อพื้นที่สำหรับ Hamburger Menu */
+  }
+   
+    
+.sidebar.open {
+    left: 0; /* แสดง Sidebar */
+}
+    .overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* สีดำโปร่งใส */
+  visibility: hidden; /* ซ่อนเริ่มต้น */
+  opacity: 0; /* ทำให้โปร่งใสเริ่มต้น */
+  pointer-events: none; /* ปิดการตอบสนอง */
+  transition: visibility 0s linear 0.3s, opacity 0.3s ease; /* เพิ่ม Transition */
+  z-index: 1500; /* อยู่ด้านบน */
+}
+
+.overlay.show {
+  visibility: visible; /* แสดง Overlay */
+  opacity: 1; /* ทำให้มองเห็น */
+  pointer-events: auto; /* เปิดการตอบสนอง */
+  transition: opacity 0.3s ease; /* ทำให้ Transition นุ่มนวล */
+}
+
+    
+
+.overlay.hidden {
+  opacity: 0; /* ซ่อน Overlay */
+  pointer-events: auto; /* อนุญาตให้คลิกเพื่อปิดเมนู */
+}
+    
+    .actions {
+    position: relative; /* กำหนดตำแหน่งสำหรับจัดลูก */
+  }
+
+  .actions .add-btn {
+    position: absolute; /* กำหนดปุ่มเป็นแบบ absolute */
+    top: -60px; /* ย้ายปุ่มขึ้นไปเหนือ */
+    right: 10px; /* จัดให้ชิดขอบขวา */
+    background: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+
+  .actions .add-btn:hover {
+    background: #005bb5;
+  }
+
+  .actions input,
+  .actions select {
+    width: 100%; /* ทำให้ Input และ Select กว้างเต็มหน้าจอ */
+    margin-bottom: 10px; /* เพิ่มระยะห่าง */
+  }
+
+  .actions {
+    display: block; /* จัดเรียงแนวตั้ง */
+  }
+    
+    /* ไอคอนลอยติดขอบขวา */
+.floating-icon {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  background: #fff;
+  color: #000;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: none; /* ลบเงาที่อาจทำให้เกิดปัญหา */
+  transition: transform 0.3s, background 0.3s;
+  outline: none; /* ปิดเส้นขอบ */
+  overflow: hidden; /* ตัดส่วนที่เกิน */
+}
+
+.floating-icon:hover {
+  background: #565051;
+  transform: scale(1.1); /* เพิ่มเอฟเฟกต์ตอน hover */
+}
+
+.floating-icon {
+  outline: none; /* ปิดการแสดงเส้นขอบ */
+}
+
+.floating-icon:focus {
+  outline: none; /* ปิดเส้นขอบตอน focus */
+}
+
+/* เมนูแบบเลื่อน */
+.slide-menu {
+  position: fixed;
+  top: 50%; /* ตั้งให้อยู่กึ่งกลางแนวตั้ง */
+  left: 50%; /* ตั้งให้อยู่กึ่งกลางแนวนอน */
+  transform: translate(-50%, -50%); /* เลื่อนให้อยู่ตรงกลางจริง */
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  width: 300px; /* ความกว้างของฟอร์ม */
+  z-index: 1000; /* ให้อยู่ด้านบน */
+  transition: transform 0.3s ease;
+}
+
+.slide-menu.hidden {
+  right: -400px; /* ซ่อนเมนูออกนอกหน้าจอ */
+}
+
+.slide-menu button {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.slide-menu button:hover {
+  background: #218838;
+}
+    
+    
+}
+  
+  }
+</style>
+</head>
+<body>
+  
+  
+  <div class="overlay" onclick="closeSidebar()"></div>
+  
+  <button class="hamburger-menu" onclick="toggleSidebar()">
+  <i class="fas fa-bars"></i>
+</button>
+  
+  <script>
+  function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.querySelector('.overlay');
+  
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('show');
+}
+
+function closeSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.querySelector('.overlay');
+  
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+}
+  
+  function saveProduct() {
+  const productName = document.getElementById("productName").value;
+  const productCategory = document.getElementById("productCategory").value;
+  const productPrice = document.getElementById("productPrice").value;
+  const productImage = "https://via.placeholder.com/150"; // แทนที่ด้วย URL รูปภาพชั่วคราว
+
+  // ตรวจสอบว่ากรอกข้อมูลครบหรือไม่
+  if (!productName || !productCategory || !productPrice) {
+    alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+    return;
+  }
+
+  // เพิ่มสินค้าใหม่
+  const newProduct = {
+    id: products.length + 1,
+    name: productName,
+    category: productCategory,
+    price: `฿${productPrice}`,
+    image: productImage,
+  };
+  products.push(newProduct);
+
+  // อัปเดตรายการสินค้า
+  renderProducts(filterCategory.value, searchInput.value);
+
+  // ซ่อนฟอร์มและรีเซ็ต
+  closeAddButton();
+  document.getElementById("addProductForm").querySelector("form").reset();
+}
+  
+  </script>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="logo">
+      <i class="fas fa-store"></i>
+      <span>POS</span>
+    </div>
+    <div class="menu-item" onclick="location.href='index.html';">
+  <i class="fas fa-th-large"></i>
+  <span>แดชบอร์ด</span>
+</div>
+    <div class="menu-item">
+      <i class="fas fa-box"></i>
+      <span>ผลิตภัณฑ์</span>
+    </div>
+    <div class="menu-item">
+      <i class="fas fa-shopping-cart"></i>
+      <span>การสั่งซื้อ</span>
+    </div>
+    <div class="menu-item">
+      <i class="fas fa-cash-register"></i>
+      <span>ขายสินค้า</span>
+    </div>
+    <div class="menu-item">
+      <i class="fas fa-cog"></i>
+      <span>ตั้งค่า</span>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <h1></h1>
+    <div class="actions">
+      <input type="text" id="searchInput" placeholder="ค้นหาสินค้า...">
+      <select id="filterCategory">
+        <option value="all">ทั้งหมด</option>
+        <option value="อาหาร">อาหาร</option>
+        <option value="เครื่องดื่ม">เครื่องดื่ม</option>
+      </select>
+      <div class="floating-icon">
+  <i class="fas fa-plus" onclick="toggleAddButton()"></i>
+  <div class="slide-menu hidden">
+    
+  </div>
+</div>  
+      
+      <div class="slide-menu hidden" id="addProductForm">
+  <h3>เพิ่มสินค้าใหม่</h3>
+  <form>
+    <label for="productName">ชื่อสินค้า:</label>
+    <input type="text" id="productName" placeholder="กรอกชื่อสินค้า">
+    
+    <label for="productCategory">หมวดหมู่:</label>
+    <select id="productCategory">
+      <option value="อาหาร">อาหาร</option>
+      <option value="เครื่องดื่ม">เครื่องดื่ม</option>
+    </select>
+    
+    <label for="productPrice">ราคา:</label>
+    <input type="number" id="productPrice" placeholder="กรอกราคา">
+    
+    <label for="productImage">เลือกรูปภาพ:</label>
+    <input type="file" id="productImage">
+    
+    <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+      <button type="button" onclick="closeAddButton()" style="background: #e74c3c; color: white; padding: 10px; border: none; border-radius: 5px;">ออก</button>
+      <button type="button" onclick="saveProduct()" style="background: #28a745; color: white; padding: 10px; border: none; border-radius: 5px;">บันทึก</button>   </div>
+  </form>
+</div>
+      <script>
+      function toggleAddButton() {
+  const slideMenu = document.getElementById('addProductForm');
+  slideMenu.classList.toggle('hidden');
+}
+      function closeAddButton() {
+  const slideMenu = document.getElementById('addProductForm');
+  slideMenu.classList.add('hidden'); // ซ่อนฟอร์ม
+}
+      </script>
+      
+      <!-- Popup -->
+      <div id="popup" class="popup hidden">
+  <div class="popup-content">
+    <h2>เพิ่มสินค้าใหม่</h2>
+    <form id="productForm">
+      <div class="form-group">
+        <label for="productName">ชื่อสินค้า</label>
+        <input type="text" id="productName" placeholder="กรอกชื่อสินค้า" required>
+      </div>
+      <div class="form-group">
+        <label for="productCategory">หมวดหมู่</label>
+        <select id="productCategory" required>
+          <option value="อาหาร">อาหาร</option>
+          <option value="เครื่องดื่ม">เครื่องดื่ม</option>
+          <option value="อื่นๆ">อื่นๆ</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="productPrice">ราคา</label>
+        <input type="number" id="productPrice" placeholder="กรอกราคา" required>
+      </div>
+      <div class="form-group">
+        <label for="productImage">อัปโหลดรูป</label>
+        <input type="file" id="productImage" accept="image/*">
+      </div>
+      <div class="popup-actions">
+        <button type="button" class="cancel-btn" onclick="closePopup()">ยกเลิก</button>
+        <button type="button" onclick="saveProduct()" style="background: #28a745; color: white; padding: 10px; border: none; border-radius: 5px;">บันทึก</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  function addProduct() {
+  // เปิด Popup โดยลบคลาส `hidden`
+  document.getElementById("popup").classList.remove("hidden");
+}
+
+function closePopup() {
+  // ปิด Popup โดยเพิ่มคลาส `hidden`
+  document.getElementById("popup").classList.add("hidden");
+}
+
+document.getElementById("productForm").addEventListener("submit", function (e) {
+  e.preventDefault(); // ป้องกันการรีเฟรชหน้าเว็บ
+
+  // ดึงค่าจากฟอร์ม
+  const name = document.getElementById("productName").value;
+  const category = document.getElementById("productCategory").value;
+  const price = document.getElementById("productPrice").value;
+
+  // แสดงในคอนโซลหรือเพิ่มลงในฐานข้อมูล
+  console.log(`เพิ่มสินค้า: ${name}, หมวดหมู่: ${category}, ราคา: ${price}`);
+
+  // รีเซ็ตฟอร์ม
+  this.reset();
+
+  // ปิด Popup
+  closePopup();
+});
+    
+    // ฟังก์ชันแสดงตัวอย่างรูปภาพ
+document.getElementById("productImage").addEventListener("change", function (event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      document.getElementById("previewImage").src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  } else {
+    // หากไม่มีการเลือกไฟล์ ให้แสดงภาพตัวอย่างเริ่มต้น
+    document.getElementById("previewImage").src = "https://via.placeholder.com/150";
+  }
+});
+
+// ฟังก์ชันบันทึกสินค้า
+function saveProduct() {
+  // ดึงค่าจากฟอร์ม
+  const productName = document.getElementById("productName").value;
+  const productCategory = document.getElementById("productCategory").value;
+  const productPrice = document.getElementById("productPrice").value;
+  const productImage = "https://via.placeholder.com/150"; // ใช้ภาพชั่วคราว
+
+  // ตรวจสอบว่ากรอกข้อมูลครบหรือไม่
+  if (!productName || !productCategory || !productPrice) {
+    alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+    return;
+  }
+
+  // เพิ่มสินค้าใหม่ในรายการ
+  const newProduct = {
+    id: products.length + 1,
+    name: productName,
+    category: productCategory,
+    price: `฿${productPrice}`,
+    image: productImage,
+  };
+  products.push(newProduct);
+
+  // อัปเดต UI
+  renderProducts();
+
+  // ซ่อนฟอร์มและรีเซ็ต
+  closeAddButton();
+  document.getElementById("addProductForm").querySelector("form").reset();
+}
+
+</script>
+
+    </div>
+    <div class="product-grid" id="productGrid"></div>
+  </div>
+
+  <script>
+    const products = [
+      { id: 1, name: "ข้าวผัด", category: "อาหาร", price: "฿50", image: "https://via.placeholder.com/150" },
+      { id: 2, name: "น้ำผลไม้", category: "เครื่องดื่ม", price: "฿100", image: "https://via.placeholder.com/150" },
+      { id: 1, name: "ข้าวไก่ทอด", category: "อาหาร", price: "฿70", image: "https://via.placeholder.com/150" },
+      { id: 2, name: "น้ำส้ม", category: "เครื่องดื่ม", price: "฿30", image: "https://via.placeholder.com/150" },
+    ];
+
+    const productGrid = document.getElementById("productGrid");
+    const searchInput = document.getElementById("searchInput");
+    const filterCategory = document.getElementById("filterCategory");
+
+    function renderProducts(filter = "all", search = "") {
+      productGrid.innerHTML = "";
+      const filteredProducts = products.filter(
+        (p) =>
+          (filter === "all" || p.category === filter) &&
+          p.name.toLowerCase().includes(search.toLowerCase())
+      );
+      if (filteredProducts.length === 0) {
+        productGrid.innerHTML = "<p>ไม่มีสินค้าที่ตรงกับเงื่อนไข</p>";
+        return;
+      }
+      filteredProducts.forEach((product) => {
+        const productCard = document.createElement("div");
+        productCard.classList.add("product-card");
+        productCard.innerHTML = `
+          <div class="product-image">
+            <img src="${product.image}" alt="${product.name}">
+          </div>
+          <div class="product-details">
+            <div class="product-name">${product.name}</div>
+            <div class="product-category">หมวดหมู่: ${product.category}</div>
+            <div class="product-price">${product.price}</div>
+            <div class="product-actions">
+              <button class="edit-btn" onclick="editProduct(${product.id})"><i class="fas fa-edit"></i> แก้ไข</button>
+              <button class="delete-btn" onclick="deleteProduct(${product.id})"><i class="fas fa-trash"></i> ลบ</button>
+            </div>
+          </div>
+        `;
+        productGrid.appendChild(productCard);
+      });
+    }
+
+    function addProduct() {
+      const newProduct = {
+        id: products.length + 1,
+        name: `สินค้าใหม่ ${products.length + 1}`,
+        category: "อื่นๆ",
+        price: "฿100",
+        image: "https://via.placeholder.com/150",
+      };
+      products.push(newProduct);
+      renderProducts(filterCategory.value, searchInput.value);
+    }
+
+    function editProduct(id) {
+      alert(`แก้ไขสินค้า ID: ${id}`);
+    }
+
+    function deleteProduct(id) {
+      const index = products.findIndex((p) => p.id === id);
+      if (index !== -1) {
+        products.splice(index, 1);
+        renderProducts(filterCategory.value, searchInput.value);
+      }
+    }
+
+    searchInput.addEventListener("input", () =>
+      renderProducts(filterCategory.value, searchInput.value)
+    );
+    filterCategory.addEventListener("change", () =>
+      renderProducts(filterCategory.value, searchInput.value)
+    );
+
+    renderProducts();
+  </script>
+</body>
+</html>
